@@ -10,7 +10,7 @@ import { slackStamp } from "~/app/constants/slack_stamp";
 registerLocale("ja", ja);
 
 const Calendar = () => {
-  const initialText = "ご都合以下かですか\n";
+  const initialText = "以下の日程でご都合いかがでしょうか。\n";
   const [input, setInput] = useState<string>(initialText);
   const [timeChecker, setTimeChecker] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
