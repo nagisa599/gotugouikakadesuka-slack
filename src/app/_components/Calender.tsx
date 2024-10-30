@@ -76,7 +76,7 @@ const Calendar = () => {
     const stampedLines = lines.map((line, index) => {
       if (index === 0) return line; // 1行目は絵文字を追加しない
       const emoji = slackStamp[(index - 1) % slackStamp.length]; // 2行目以降に絵文字を追加
-      return `${line} ${emoji}`;
+      return `${emoji} ${line}`;
     });
     // eslint-disable-next-line
     navigator.clipboard.writeText(stampedLines.join("\n"));
