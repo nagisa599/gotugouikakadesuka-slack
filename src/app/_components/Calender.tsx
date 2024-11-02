@@ -5,20 +5,25 @@ import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale } from "react-datepicker";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { slackStamp } from "~/app/constants/slack_stamp";
+import { iosSlackStamp, slackStamp } from "~/app/constants/slack_stamp";
+import { useToast } from "~/context/ToastContext";
+import { text } from "stream/consumers";
 // eslint-disable-next-line
 registerLocale("ja", ja);
 
 const Calendar = () => {
+  const { showToast, closeToast } = useToast();
   const initialText = "以下の日程でご都合いかがでしょうか。\n";
   const [input, setInput] = useState<string>(initialText);
   const [timeChecker, setTimeChecker] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const insertTextAtCursor = (text: string) => {
+    // 参照していない場合は、何もしない
     if (!textareaRef.current) return;
-
+    //　テキストエリアの現在の選択範囲の開始位置と終了位置を取得
     const { selectionStart, selectionEnd } = textareaRef.current;
+    console.log(selectionStart, selectionEnd);
     const currentValue = input;
 
     const newValue =
@@ -68,20 +73,82 @@ const Calendar = () => {
   const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);
   };
+  const handleIOSCopy = (text: string) => {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
 
-  const handleSlackCopy = () => {
-    const lines = input.split("\n").filter((line) => line.trim() !== ""); // 空行を除外
+    try {
+      const successful = document.execCommand("copy");
+      const message = successful
+        ? "コピーに成功しました"
+        : "コピーに失敗しました";
+      showToast(message, successful ? "success" : "error");
+    } catch (err) {
+      showToast("slackコピーに失敗しました", "error");
+    }
 
-    // 1行目をそのまま保持し、2行目以降に絵文字を追加
-    const stampedLines = lines.map((line, index) => {
-      if (index === 0) return line; // 1行目は絵文字を追加しない
-      const emoji = slackStamp[(index - 1) % slackStamp.length]; // 2行目以降に絵文字を追加
-      return `${emoji} ${line}`;
-    });
-    // eslint-disable-next-line
-    navigator.clipboard.writeText(stampedLines.join("\n"));
+    document.body.removeChild(textArea);
   };
 
+  const handleSlackCopy = () => {
+    const isIOS = () => {
+      const agent = window.navigator.userAgent;
+      return /iPad|iPhone|iPod/.test(agent);
+    };
+    const lines = input.split("\n").filter((line) => line.trim() !== ""); // 空行を除外
+
+    if (isIOS()) {
+      const stampedLines = lines
+        .map((line, index) => {
+          if (index === 0) return line; // 1行目は絵文字を追加しない
+          const emoji = iosSlackStamp[(index - 1) % slackStamp.length]; // 2行目以降に絵文字を追加
+          return `${emoji} ${line}`;
+        })
+        .join("\n");
+      handleIOSCopy(stampedLines);
+    } else {
+      const stampedLines = lines
+        .map((line, index) => {
+          if (index === 0) return line; // 1行目は絵文字を追加しない
+          const emoji = slackStamp[(index - 1) % slackStamp.length]; // 2行目以降に絵文字を追加
+          return `${emoji} ${line}`;
+        })
+        .join("\n");
+      navigator.clipboard
+        .writeText(stampedLines)
+        .then(() => showToast("slackコピーしました", "success"))
+        .catch(() => showToast("コピーに失敗しました", "error"));
+    }
+  };
+  const handleCopy = () => {
+    const isIOS = () => {
+      const agent = window.navigator.userAgent;
+      return /iPad|iPhone|iPod/.test(agent);
+    };
+    const lines = input.split("\n").filter((line) => line.trim() !== ""); // 空行を除外
+
+    if (isIOS()) {
+      const stampedLines = lines
+        .map((line, index) => {
+          return `${line}`;
+        })
+        .join("\n");
+      handleIOSCopy(stampedLines);
+    } else {
+      const stampedLines = lines
+        .map((line, index) => {
+          return `${line}`;
+        })
+        .join("\n");
+      navigator.clipboard
+        .writeText(stampedLines)
+        .then(() => showToast("コピーしました", "success"))
+        .catch(() => showToast("コピーに失敗しました", "error"));
+    }
+  };
   return (
     <div>
       <DatePicker
@@ -102,6 +169,7 @@ const Calendar = () => {
       />
       <textarea
         ref={textareaRef}
+        name="copy-text"
         rows={8}
         value={input}
         onChange={handleTextChange}
@@ -116,7 +184,7 @@ const Calendar = () => {
           リセット
         </button>
         <button
-          onClick={() => navigator.clipboard.writeText(input)}
+          onClick={() => handleCopy()}
           className="rounded bg-green-500 px-4 py-2 text-white transition hover:bg-green-600"
         >
           コピー

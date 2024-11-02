@@ -2,6 +2,7 @@ import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
+import { ToastProvider } from "~/context/ToastContext";
 
 export const metadata: Metadata = {
   title: "slackご都合以下かですか？",
@@ -14,7 +15,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
-      <body>{children}</body>
+      <ToastProvider>
+        <body>{children}</body>
+      </ToastProvider>
     </html>
   );
 }
