@@ -8,6 +8,13 @@ export const slackStamp = [
   ":pray:",
   ":bow:",
   ":tada:",
+  ":温泉:",
+  ":ぽっ:",
+  ":微笑:",
+  ":raised_hands:",
+  ":キリッ:",
+  ":泣きそうな顔:",
+  ":sob",
 ];
 
 export const iosSlackStamp = [
@@ -20,4 +27,8 @@ export const iosSlackStamp = [
   "🙇",
   "😊",
   "🎉",
+  "♨️",
+  "😎",
+  "😭",
+  "😍",
 ];

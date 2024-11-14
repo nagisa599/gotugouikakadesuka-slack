@@ -3,7 +3,7 @@ import React, { useState, useRef } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale } from "react-datepicker";
-import { format } from "date-fns";
+import { format, isToday } from "date-fns";
 import { ja } from "date-fns/locale";
 import { iosSlackStamp, slackStamp } from "~/app/constants/slack_stamp";
 import { useToast } from "~/context/ToastContext";
@@ -155,6 +155,7 @@ const Calendar = () => {
         inline
         dateFormat="MMMM d日 (eee)"
         onChange={handleChange}
+        dayClassName={(date) => (isToday(date) ? "highlight-today" : "")}
         locale="ja"
       />
       <DatePicker
